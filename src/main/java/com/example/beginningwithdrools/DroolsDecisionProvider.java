@@ -12,8 +12,12 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 @Service
 public class DroolsDecisionProvider {
@@ -23,12 +27,34 @@ public class DroolsDecisionProvider {
 
     public DroolsDecisionProvider() {
         pathMatchingResourcePatternResolver = new PathMatchingResourcePatternResolver();
-        KieContainer kieContainer = getKieContainerFromResource(getRuleFileResource());
+        //KieContainer kieContainer = getKieContainerFromResource(getRuleFileResource());
+        KieContainer kieContainer = getKieContainerFromInputStream(getRuleFileStream());
         sessionsPool = kieContainer.newKieSessionsPool(10);
     }
 
     private Resource getRuleFileResource() {
         return pathMatchingResourcePatternResolver.getResource("classpath:rules/decision-rules.drl");
+    }
+
+    private InputStream getRuleFileStream() {
+        return getStreamFromZip("classpath:rules/decision-rules.zip");
+    }
+
+    private InputStream getStreamFromZip(String location) {
+        Resource resource = pathMatchingResourcePatternResolver.getResource(location);
+        ;
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(resource.getFile());
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            if (entries.hasMoreElements()) {
+                ZipEntry zipEntry = entries.nextElement();
+                return zipFile.getInputStream(zipEntry);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private KieContainer getKieContainerFromResource(Resource resource) {
@@ -39,6 +65,18 @@ public class DroolsDecisionProvider {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        KieRepository kieRepository = KieServices.get().getRepository();
+        kieRepository.addKieModule(kieRepository::getDefaultReleaseId);
+        kieServices.newKieBuilder(kie).buildAll();
+
+        return kieServices.newKieContainer(kieRepository.getDefaultReleaseId());
+    }
+
+    private KieContainer getKieContainerFromInputStream(InputStream inputStream) {
+        KieServices kieServices = KieServices.Factory.get();
+        KieFileSystem kie = kieServices.newKieFileSystem();
+        kie.write("src/main/resources/decision.drl", new ResourceFactoryServiceImpl().newInputStreamResource(inputStream));
 
         KieRepository kieRepository = KieServices.get().getRepository();
         kieRepository.addKieModule(kieRepository::getDefaultReleaseId);
