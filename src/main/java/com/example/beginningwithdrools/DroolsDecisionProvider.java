@@ -11,6 +11,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -37,12 +38,28 @@ public class DroolsDecisionProvider {
     }
 
     private InputStream getRuleFileStream() {
-        return getStreamFromZip("classpath:rules/decision-rules.zip");
+        //return getStreamFromZip("classpath:rules/decision-rules.zip");
+        return getStreamFromRemoteZip("D:\\Workspace\\OtherResources\\decision-rules.zip");
+    }
+
+    private InputStream getStreamFromRemoteZip(String location) {
+        File file = new File(location);
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(file);
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            if (entries.hasMoreElements()) {
+                ZipEntry zipEntry = entries.nextElement();
+                return zipFile.getInputStream(zipEntry);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private InputStream getStreamFromZip(String location) {
         Resource resource = pathMatchingResourcePatternResolver.getResource(location);
-        ;
         ZipFile zipFile = null;
         try {
             zipFile = new ZipFile(resource.getFile());
