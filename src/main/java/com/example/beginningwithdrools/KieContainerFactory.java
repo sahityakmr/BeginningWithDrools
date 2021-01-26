@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
@@ -25,15 +26,24 @@ public abstract class KieContainerFactory {
         return pathMatchingResourcePatternResolver.getResource(location);
     }
 
-    protected InputStream getStreamFromZip(Resource resource) {
+    protected InputStream getStreamFromZip(File file) {
         ZipFile zipFile = null;
         try {
-            zipFile = new ZipFile(resource.getFile());
+            zipFile = new ZipFile(file);
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             if (entries.hasMoreElements()) {
                 ZipEntry zipEntry = entries.nextElement();
                 return zipFile.getInputStream(zipEntry);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    protected InputStream getStreamFromZip(Resource resource) {
+        try {
+            return getStreamFromZip(resource.getFile());
         } catch (IOException e) {
             e.printStackTrace();
         }

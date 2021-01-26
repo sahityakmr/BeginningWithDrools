@@ -14,7 +14,7 @@ public class DroolsDecisionProvider {
 
     private final KieContainerSessionsPool sessionsPool;
 
-    public DroolsDecisionProvider(@Qualifier("resource-zip") KieContainerFactory kieContainerFactory) {
+    public DroolsDecisionProvider(@Qualifier("remote-zip") KieContainerFactory kieContainerFactory) {
         KieContainer kieContainer = kieContainerFactory.getKieContainer();
         sessionsPool = kieContainer.newKieSessionsPool(10);
     }

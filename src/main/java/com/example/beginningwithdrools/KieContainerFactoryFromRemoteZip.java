@@ -7,27 +7,26 @@ import org.kie.api.builder.KieRepository;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
 
-@Qualifier("resource-zip")
+@Qualifier("remote-zip")
 @Component
-public class KieContainerFactoryFromZip extends KieContainerFactory {
+public class KieContainerFactoryFromRemoteZip extends KieContainerFactory {
 
     private final ConfigReader configReader;
 
-    public KieContainerFactoryFromZip(ConfigReader configReader) {
+    public KieContainerFactoryFromRemoteZip(ConfigReader configReader) {
         this.configReader = configReader;
     }
 
     @Override
     public KieContainer getKieContainer() {
         //Resource resource = getResourceFromPath(configReader.getZipLocation());
-        Resource resource = getResourceFromPath("classpath:rules/decision-rules.zip");
-        InputStream inputStream = getStreamFromZip(resource);
+        File file = new File("D:/Workspace/OtherResources/decision-rules.zip");
+        InputStream inputStream = getStreamFromZip(file);
         KieServices kieServices = KieServices.Factory.get();
         KieFileSystem kie = kieServices.newKieFileSystem();
         kie.write("src/main/resources/decision.drl", new ResourceFactoryServiceImpl().newInputStreamResource(inputStream));
