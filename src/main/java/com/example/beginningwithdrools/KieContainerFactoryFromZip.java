@@ -1,16 +1,10 @@
 package com.example.beginningwithdrools;
 
-import org.drools.core.io.impl.ResourceFactoryServiceImpl;
-import org.kie.api.KieServices;
-import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieRepository;
 import org.kie.api.runtime.KieContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 @Qualifier("resource-zip")
@@ -28,14 +22,6 @@ public class KieContainerFactoryFromZip extends KieContainerFactory {
         //Resource resource = getResourceFromPath(configReader.getZipLocation());
         Resource resource = getResourceFromPath("classpath:rules/decision-rules.zip");
         InputStream inputStream = getStreamFromZip(resource);
-        KieServices kieServices = KieServices.Factory.get();
-        KieFileSystem kie = kieServices.newKieFileSystem();
-        kie.write("src/main/resources/decision.drl", new ResourceFactoryServiceImpl().newInputStreamResource(inputStream));
-
-        KieRepository kieRepository = KieServices.get().getRepository();
-        kieRepository.addKieModule(kieRepository::getDefaultReleaseId);
-        kieServices.newKieBuilder(kie).buildAll();
-
-        return kieServices.newKieContainer(kieRepository.getDefaultReleaseId());
+        return getKieContainer(inputStream);
     }
 }
